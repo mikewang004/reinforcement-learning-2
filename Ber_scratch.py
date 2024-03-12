@@ -5,9 +5,8 @@ import gymnasium as gym
 env = gym.make('CartPole-v1', render_mode="human")
 observation, info = env.reset()
 
-budget = 1000
-
-if budget != 0:
+budget = 10000
+while budget != 0:
     action = env.action_space.sample()
     observation, reward, terminated, truncated, info = env.step(action)
 
