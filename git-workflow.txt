@@ -6,6 +6,7 @@ Voordat je changes ten opzichte van main maakt maak een branch van main aan als 
 
 Als je klaar bent dan:
     1. checkout naar main 
+    2. pull -> rebase 
     2. branch -> merge..
     3. doe wat je editor zegt 
 
