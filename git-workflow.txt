@@ -1,0 +1,11 @@
+
+
+Voordat je changes ten opzichte van main maakt maak een branch van main aan als volgt
+    0. pull
+    1. branch -> create branch from 
+
+Als je klaar bent dan:
+    1. checkout naar main 
+    2. branch -> merge..
+    3. doe wat je editor zegt 
+
