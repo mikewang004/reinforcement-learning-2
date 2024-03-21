@@ -20,7 +20,7 @@ if is_python:
 
 plt.ion()
 
-device = torch.device('cude' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 step = namedtuple('step', ('state', 'action', 'next_state', 'reward', 'terminated'))
 
@@ -132,7 +132,7 @@ def plot_lengths(show_result=False):
         means = torch.cat((torch.zeros(99), means))
         plt.plot(means.numpy())
 
-    plt.pause(0.00)
+    plt.pause(0.01)
     if is_python:
         if not show_plot:
             display.display(plt.gcf())
