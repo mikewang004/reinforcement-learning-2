@@ -20,7 +20,9 @@ if is_python:
     from IPython import display
 
 plt.ion()
-cuda.is_available()
+
+print(torch.cuda.is_available())
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 step = namedtuple('step', ('state', 'action', 'next_state', 'reward', 'terminated'))
@@ -119,7 +121,7 @@ episode_lengths = []
 def plot_lengths(show_result=False):
     plt.figure(1)
     durations = torch.tensor(episode_lengths, dtype=torch.float)
-    if show_result == True:
+    if show_result:
         plt.title('result')
     else:
         plt.clf()
@@ -213,11 +215,10 @@ for i in range(num_episodes):
 
         if done:
             episode_lengths.append(t + 1)
-            if t % 10 == 0:
-                plot_lengths()
+            #plot_lengths(show_result= False)
             break
 
 print('Complete')
-plot_lengths(show_result=True)
+plot_lengths(show_result=False)
 plt.ioff()
 plt.show()
