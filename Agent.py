@@ -135,7 +135,7 @@ def main():
     train(
         env=env,
         device=device,
-        num_episodes=300,
+        num_episodes=20,
         buffer_depth=10000,
         batch_size=128,
         gamma=0.99,
