@@ -56,7 +56,7 @@ def select_action(state, steps_done, eps_start, eps_end, eps_decay, env, policy_
     else:
         raise KeyError("Choose either 'egreedy' or 'softmax'")
 
-def train_model(memory, policy_network, target_network, optimizer, device, batch_size, gamma):
+def train_model(memory, policy_network, target_network, optimizer, device, batch_size, gamma, temp):
     if len(memory) < batch_size:
         return
 
