@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from itertools import count
+import numpy as np
 
 class ReplayBuffer:
     def __init__(self, buffer_depth):
@@ -56,7 +57,7 @@ def select_action(state, steps_done, eps_start, eps_end, eps_decay, env, policy_
     else:
         raise KeyError("Choose either 'egreedy' or 'softmax'")
 
-def train_model(memory, policy_network, target_network, optimizer, device, batch_size, gamma, temp):
+def train_model(memory, policy_network, target_network, optimizer, device, batch_size, gamma):
     if len(memory) < batch_size:
         return
 
@@ -87,7 +88,7 @@ def train_model(memory, policy_network, target_network, optimizer, device, batch
     torch.nn.utils.clip_grad_value_(policy_network.parameters(), 100)
     optimizer.step()
 
-def train(env, device, num_episodes, buffer_depth, batch_size, gamma, eps_start, eps_end, eps_decay, tau, lr, policy):
+def train(env, device, num_episodes, buffer_depth, batch_size, gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp):
     n_actions = env.action_space.n
     state, _ = env.reset()
     n_observations = len(state)
