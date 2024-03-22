@@ -10,15 +10,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import os
-os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
-
-env = gym.make('CartPole-v1', render_mode="human")
-
-plt.ion()
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-step = namedtuple('step', ('state', 'action', 'next_state', 'reward', 'terminated'))
 
 class replaybuffer(object):
 
@@ -65,41 +56,13 @@ class Q_network(nn.Module):
         x = F.relu(self.layer2(x))
         return self.layer3(x)
 
-#HYPERPARAMETERS & plotting
-# BATCH_SIZE is the number of transitions sampled from the replay buffer
-# GAMMA is the discount factor as mentioned in the previous section
-# EPS_START is the starting value of epsilon
-# EPS_END is the final value of epsilon
-# EPS_DECAY controls the rate of exponential decay of epsilon, higher means a slower decay
-# TAU is the update rate of the target network
-# LR is the learning rate of the ``AdamW`` optimizer
-BATCH_SIZE = 128
-GAMMA = 0.99
-EPS_START = 0.9
-EPS_END = 0.05
-EPS_DECAY = 1000
-TAU = 0.005
-LR = 1e-4
 
-# Get number of actions from gym action space
-n_actions = env.action_space.n
-# Get the number of state observations
-state, info = env.reset()
-n_observations = len(state)
 
-policy_network = Q_network(n_observations, n_actions).to(device)
-target_network = Q_network(n_observations, n_actions).to(device)
-target_network.load_state_dict(policy_network.state_dict())
 
-optimizer = optim.AdamW(policy_network.parameters(), lr = LR, amsgrad = True)
-memory = replaybuffer(10000)
-
-steps_done = 0
 
 
 #select action function
-def select_action(state):
-    global steps_done
+def select_action(state,EPS_END,EPS_START,EPS_DECAY,steps_done, env, policy_network, device):
     sample = random.random()
     eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * steps_done / EPS_DECAY)
     steps_done += 1
@@ -132,7 +95,23 @@ def plot_lengths(show_result=False):
 
 
 #function to train model
-def train_model():
+def train_model(BATCH_SIZE, GAMMA, EPS_START, EPS_END, EPS_DECAY, TAU, LR):
+
+    # Get number of actions from gym action space
+    n_actions = env.action_space.n
+    # Get the number of state observations
+    state, info = env.reset()
+    n_observations = len(state)
+
+    policy_network = Q_network(n_observations, n_actions).to(device)
+    target_network = Q_network(n_observations, n_actions).to(device)
+    target_network.load_state_dict(policy_network.state_dict())
+
+    optimizer = optim.AdamW(policy_network.parameters(), lr=LR, amsgrad=True)
+    memory = replaybuffer(10000)
+
+    steps_done = 0
+
     if len(memory) < BATCH_SIZE:
         return
 
@@ -163,50 +142,79 @@ def train_model():
     torch.nn.utils.clip_grad_value_(policy_network.parameters(), 100)
     optimizer.step()
 
-#Performing training
-if torch.cuda.is_available():
-    print('CUDA is available')
-    num_episodes = 300
-else:
-    print('CUDA is not available')
-    num_episodes = 300
+def main():
+    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
-for i in range(num_episodes):
-    state, info = env.reset()
-    state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
+    env = gym.make('CartPole-v1', render_mode="human")
 
-    for t in count():
-        action = select_action(state)
-        observation, reward, terminated, truncated, _ = env.step(action.item())
-        reward = torch.tensor([reward], device=device)
-        done = terminated or truncated
+    plt.ion()
 
-        if done:
-            next_state = None
-        else:
-            next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        #store step in memory
-        memory.push(state, action, next_state, reward, done)
+    step = namedtuple('step', ('state', 'action', 'next_state', 'reward', 'terminated'))
 
-        #update state
-        state = next_state
+    if torch.cuda.is_available():
+        print('CUDA is available')
+        num_episodes = 300
+    else:
+        print('CUDA is not available')
+        num_episodes = 300
 
-        #perform training step
-        train_model()
+    # HYPERPARAMETERS & plotting
+    # BATCH_SIZE is the number of transitions sampled from the replay buffer
+    # GAMMA is the discount factor as mentioned in the previous section
+    # EPS_START is the starting value of epsilon
+    # EPS_END is the final value of epsilon
+    # EPS_DECAY controls the rate of exponential decay of epsilon, higher means a slower decay
+    # TAU is the update rate of the target network
+    # LR is the learning rate of the ``AdamW`` optimizer
+    BATCH_SIZE = 128
+    GAMMA = 0.99
+    EPS_START = 0.9
+    EPS_END = 0.05
+    EPS_DECAY = 1000
+    TAU = 0.005
+    LR = 1e-4
+    steps_done = 0
+    for i in range(num_episodes):
+        state, info = env.reset()
+        state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
 
-        target_network_state_dict = target_network.state_dict()
-        policy_network_state_dict = policy_network.state_dict()
-        for key in policy_network_state_dict:
-            target_network_state_dict[key] = policy_network_state_dict[key] * TAU + target_network_state_dict[key] * (1-TAU)
-        target_network.load_state_dict(target_network_state_dict)
+        for t in count():
+            action = select_action(state,EPS_END,EPS_START,EPS_DECAY,steps_done, env, policy_network, device)
+            observation, reward, terminated, truncated, _ = env.step(action.item())
+            reward = torch.tensor([reward], device=device)
+            done = terminated or truncated
 
-        if done:
-            episode_lengths.append(t + 1)
-            plot_lengths()
-            break
+            if done:
+                next_state = None
+            else:
+                next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
 
-print('Complete')
-plot_lengths(show_result=False)
-plt.ioff()
-plt.show()
+            #store step in memory
+            memory.push(state, action, next_state, reward, done)
+
+            #update state
+            state = next_state
+
+            #perform training step
+            train_model(BATCH_SIZE, GAMMA, EPS_START, EPS_END, EPS_DECAY, TAU, LR)
+
+            target_network_state_dict = target_network.state_dict()
+            policy_network_state_dict = policy_network.state_dict()
+            for key in policy_network_state_dict:
+                target_network_state_dict[key] = policy_network_state_dict[key] * TAU + target_network_state_dict[key] * (1-TAU)
+            target_network.load_state_dict(target_network_state_dict)
+
+            if done:
+                episode_lengths.append(t + 1)
+                plot_lengths()
+                break
+
+    print('Complete')
+    plot_lengths(show_result=False)
+    plt.ioff()
+    plt.show()
+
+if __name__ == '__main__':
+    main()
