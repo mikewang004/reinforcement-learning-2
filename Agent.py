@@ -20,7 +20,7 @@ if is_python:
 
 plt.ion()
 
-device = torch.device('cude' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 step = namedtuple('step', ('state', 'action', 'next_state', 'reward', 'terminated'))
 
