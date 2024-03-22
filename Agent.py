@@ -14,6 +14,11 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 env = gym.make('CartPole-v1', render_mode="human")
 
+#is_python = 'inline' in matplotlib.get_backend()
+is_python = False
+if is_python:
+    from IPython import display
+
 plt.ion()
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -129,6 +134,11 @@ def plot_lengths(show_result=False):
         plt.plot(means.numpy())
 
     plt.pause(0.01)
+    if is_python:
+        if not show_plot:
+            display.display(plt.gcf())
+            display.clear_output(wait=True)
+        else: display.display(plt.gcf())
 
 
 #function to train model
@@ -203,10 +213,11 @@ for i in range(num_episodes):
 
         if done:
             episode_lengths.append(t + 1)
-            plot_lengths()
+            if t % 10 == 0:
+                plot_lengths()
             break
 
 print('Complete')
-plot_lengths(show_result=False)
+plot_lengths(show_result=True)
 plt.ioff()
 plt.show()
