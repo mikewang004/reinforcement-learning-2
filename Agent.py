@@ -1,5 +1,6 @@
 import gymnasium as gym
 import math
+import numpy as np
 import random
 import matplotlib
 import matplotlib.pyplot as plt
@@ -85,6 +86,8 @@ EPS_END = 0.05
 EPS_DECAY = 1000
 TAU = 0.005
 LR = 1e-4
+policy = "egreedy"
+temp = 1
 
 # Get number of actions from gym action space
 n_actions = env.action_space.n
@@ -103,16 +106,37 @@ steps_done = 0
 
 
 #select action function
-def select_action(state):
-    global steps_done
-    sample = random.random()
-    eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * steps_done / EPS_DECAY)
-    steps_done += 1
-    if sample > eps_threshold:
-        with torch.no_grad():
-            return policy_network(state).max(1).indices.view(1, 1)
+def select_action(state, policy):
+    if policy == "egreedy":
+        global steps_done
+        sample = random.random()
+        eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * steps_done / EPS_DECAY)
+        steps_done += 1
+        if sample > eps_threshold:
+            with torch.no_grad():
+                print("greedy ",policy_network(state).max(1).indices.view(1, 1))
+                return policy_network(state).max(1).indices.view(1, 1)
+        else:
+            print("rando ", torch.tensor([[env.action_space.sample()]], device=device, dtype=torch.long))
+            return torch.tensor([[env.action_space.sample()]], device=device, dtype=torch.long)
+
+    elif policy == "softmax":
+        distr = softmax(self.Q_sa[s], temp)
+        selected_action = np.random.choice([0,1], 1, p=distr)[0]
+
+        return torch.tensor([[selected_action]], device=device, dtype=torch.long)
+
+
+
+
     else:
-        return torch.tensor([[env.action_space.sample()]], device=device, dtype=torch.long)
+        raise KeyError("Choose either 'egreedy' or 'softmax'")
+
+
+
+
+
+
 
 episode_lengths = []
 
