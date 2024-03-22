@@ -1,1 +1,1 @@
-./agent.py
+python3 Agent.py
