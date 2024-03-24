@@ -91,11 +91,10 @@ def train_model(memory, policy_network, target_network, optimizer, device, batch
     optimizer.step()
 
 def train(env, device, num_episodes, buffer_depth, batch_size, 
-    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp):
+    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp, reward_eval_count):
     n_actions = env.action_space.n
     state, _ = env.reset()
     n_observations = len(state)
-    reward_eval_count = int(0.05 * num_episodes)
 
     policy_network = QNetwork(n_observations, n_actions).to(device)
     target_network = QNetwork(n_observations, n_actions).to(device)
@@ -113,7 +112,6 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
         state, _ = env.reset()
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
         if i % (num_episodes/reward_eval_count) == 0:
-            print(i)
             rewards_eval_bool = True
             rewards_count = 0
         for t in count():
@@ -163,10 +161,11 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
 def main():
     env = gym.make('CartPole-v1')#, render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    num_episodes = 400
     train(
         env=env,
         device=device,
-        num_episodes=100*4,
+        num_episodes=num_episodes,
         buffer_depth=10000,
         batch_size=128,
         gamma=0.99,
@@ -176,7 +175,8 @@ def main():
         tau=0.005,
         lr=1e-4,
         policy="softmax",
-        temp=0.1
+        temp=0.1,
+        reward_eval_count = int(0.05 * num_episodes)
     )
 
 if __name__ == "__main__":
