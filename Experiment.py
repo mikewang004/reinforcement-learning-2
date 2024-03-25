@@ -68,7 +68,7 @@ def main():
 
     env = gym.make('CartPole-v1')#, render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    num_episodes = 500; n_repetitions = 20;
+    num_episodes = 300; n_repetitions = 20;
     eval_percentage = 1;
     epsilon_start = [0.9, 0.8, 0.7]; epsilon_end = [0.05, 0.1, 0.3]; epsilon_decay = [100, 500, 1000]
     experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, eval_percentage, n_repetitions = n_repetitions)
