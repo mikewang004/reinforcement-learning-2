@@ -54,7 +54,7 @@ def experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, n
         plt.figure()
         plt.title("Comparison of various epsilon values")
         plt.xlabel("episode"); plt.ylabel("rewards")
-        plt.xticks(np.linspace(0, num_episodes, reward_eval_count+1))
+        #plt.xticks(np.linspace(0, num_episodes, reward_eval_count+1))
         for epse in epsilon_end:
             for epss in epsilon_start:
                 plt.plot(np.linspace(0, num_episodes, reward_eval_count+1)[:-1], reward_curve[:, i], label = f"eps_start = {epss}, eps_end = {epse}, eps_decay = {epsd}")
@@ -71,7 +71,7 @@ def main():
 
     env = gym.make('CartPole-v1')#, render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    num_episodes = 40; n_repetitions = 2;
+    num_episodes = 500; n_repetitions = 12;
     eval_percentage = 1;
     epsilon_start = [0.9, 0.8, 0.7]; epsilon_end = [0.05, 0.1, 0.3]; epsilon_decay = [100, 500, 1000]
     experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, eval_percentage, n_repetitions = n_repetitions)
