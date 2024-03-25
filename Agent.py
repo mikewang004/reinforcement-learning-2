@@ -25,17 +25,19 @@ class ReplayBuffer:
         return len(self.memory)
 
 class QNetwork(nn.Module):
-    def __init__(self, n_states, n_actions):
+    def __init__(self, n_states, n_actions, network_sizes = [128, 128]):
         super(QNetwork, self).__init__()
-        self.layer1 = nn.Linear(n_states, 128)
-        self.layer2 = nn.Linear(128, 128)
-        self.layer3 = nn.Linear(128, n_actions)
-        return
+        self.layers = nn.ModuleList()
+        self.layers.append(nn.Linear(n_states, network_sizes[0]))
+        for i in range(1, len(network_sizes)):
+            self.layers.append(nn.Linear(network_sizes[i - 1], network_sizes[i]))
+        self.layers.append(nn.Linear(network_sizes[-1], n_actions))
+        print(self.layers)
 
     def forward(self, x):
-        x = torch.relu(self.layer1(x))
-        x = torch.relu(self.layer2(x))
-        return self.layer3(x)
+        for layer in self.layers[:-1]:
+            x = torch.relu(layer(x))
+        return self.layers[-1](x)
 
 def select_action(state, steps_done, eps_start, eps_end, eps_decay, env, policy_network, device, policy, temp):
     if policy == "egreedy":
@@ -91,14 +93,14 @@ def train_model(memory, policy_network, target_network, optimizer, device, batch
     optimizer.step()
 
 def train(env, device, num_episodes, buffer_depth, batch_size,
-    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp):
+    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp, network_sizes):
     n_actions = env.action_space.n
     state, _ = env.reset()
     n_observations = len(state)
     reward_eval_count = int(0.05 * num_episodes)
 
-    policy_network = QNetwork(n_observations, n_actions).to(device)
-    target_network = QNetwork(n_observations, n_actions).to(device)
+    policy_network = QNetwork(n_observations, n_actions, network_sizes).to(device)
+    target_network = QNetwork(n_observations, n_actions, network_sizes).to(device)
     target_network.load_state_dict(policy_network.state_dict())
 
     optimizer = optim.AdamW(policy_network.parameters(), lr=lr, amsgrad=True)
@@ -176,7 +178,8 @@ def main():
         tau=0.005,
         lr=1e-4,
         policy="softmax",
-        temp=0.1
+        temp=0.1,
+        network_sizes = [128, 128]
     )
 
 if __name__ == "__main__":
