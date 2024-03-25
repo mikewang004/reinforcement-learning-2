@@ -8,6 +8,8 @@ import torch.nn as nn
 import torch.optim as optim
 from itertools import count
 import numpy as np
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 class ReplayBuffer:
     def __init__(self, buffer_depth):
@@ -32,7 +34,6 @@ class QNetwork(nn.Module):
         for i in range(1, len(network_sizes)):
             self.layers.append(nn.Linear(network_sizes[i - 1], network_sizes[i]))
         self.layers.append(nn.Linear(network_sizes[-1], n_actions))
-        print(self.layers)
 
     def forward(self, x):
         for layer in self.layers[:-1]:
@@ -107,17 +108,12 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     memory = ReplayBuffer(buffer_depth)
 
     steps_done = 0
-    #episode_lengths = []
+    episode_lengths = []
     rewards_eval_episode = np.zeros(reward_eval_count)
-    j = 0 #rewards eval counter
 
     for i in range(num_episodes):
         state, _ = env.reset()
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
-        if i % (num_episodes/reward_eval_count) == 0:
-            print(i)
-            rewards_eval_bool = True
-            rewards_count = 0
         for t in count():
             action = select_action(state, steps_done, eps_start, eps_end, eps_decay, env, policy_network, device, policy, temp)
             observation, reward, terminated, truncated, _ = env.step(action.item())
@@ -128,9 +124,6 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
                 next_state = None
             else:
                 next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
-
-            if rewards_eval_bool == True:
-                rewards_count = rewards_count + reward
 
             memory.push(state, action, next_state, reward, done)
             state = next_state
@@ -144,21 +137,16 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
             target_network.load_state_dict(target_network_state_dict)
 
             if done:
-                #episode_lengths.append(t + 1)
-                if rewards_eval_bool == True:
-                    rewards_eval_episode[j] = rewards_count
-                    j = j + 1
-                    rewards_eval_bool = False
+                episode_lengths.append(t + 1)
                 break
 
     print('Complete')
-    print(rewards_eval_episode)
     # Plot episode lengths
-    #plt.plot(rewards_eval_episode)
-    #plt.xlabel('Episode')
-    #plt.ylabel('Rewards')
-    #plt.title('Rewards per episode')
-    #plt.show()
+    plt.plot(episode_lengths)
+    plt.xlabel('Episode')
+    plt.ylabel('Rewards')
+    plt.title('Rewards per episode')
+    plt.show()
 
     return rewards_eval_episode
 
@@ -168,7 +156,7 @@ def main():
     train(
         env=env,
         device=device,
-        num_episodes=100*4,
+        num_episodes=5,
         buffer_depth=10000,
         batch_size=128,
         gamma=0.99,
@@ -179,7 +167,7 @@ def main():
         lr=1e-4,
         policy="softmax",
         temp=0.1,
-        network_sizes = [128, 128]
+        network_sizes = [20,20]
     )
 
 if __name__ == "__main__":
