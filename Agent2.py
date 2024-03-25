@@ -11,6 +11,8 @@ import numpy as np
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
+min_episodes_solved = 100; min_reward = 195.0
+
 class ReplayBuffer:
     def __init__(self, buffer_depth):
         self.Step = namedtuple('Step', ('state', 'action', 'next_state', 'reward', 'terminated'))
@@ -137,7 +139,12 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
             if done:
                 episode_lengths[i] = t
                 break
-
+        # Check if last n amount of episodes are all >= 195.0 
+        # # If so then break loop and return episode lengths 
+        # if i > min_episodes_solved:
+        #     solved_entries_index = np.argwhere(episode_lengths > min_reward)
+        #     solved_entries = episodes_lengths[solved_entries_index]
+        #     # Check now if last 100 all greater than 195.0
     print('Complete')
 
     return episode_lengths
