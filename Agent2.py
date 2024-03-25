@@ -119,7 +119,6 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
             observation, reward, terminated, truncated, _ = env.step(action.item())
             reward = torch.tensor([reward], device=device)
             done = terminated or truncated
-
             if done:
                 next_state = None
             else:
