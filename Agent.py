@@ -154,7 +154,7 @@ def main():
     train(
         env=env,
         device=device,
-        num_episodes=5,
+        num_episodes=500,
         buffer_depth=10000,
         batch_size=128,
         gamma=0.99,
@@ -165,7 +165,7 @@ def main():
         lr=1e-4,
         policy="softmax",
         temp=0.1,
-        network_sizes = [20,20]
+        network_sizes = [128,128]
     )
 
 if __name__ == "__main__":
