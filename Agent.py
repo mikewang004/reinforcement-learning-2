@@ -94,7 +94,7 @@ def train_model(memory, policy_network, target_network, optimizer, device, batch
     optimizer.step()
 
 def train(env, device, num_episodes, buffer_depth, batch_size,
-    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp, network_sizes):
+    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp, network_sizes, er_enabled, tn_enabled):
     n_actions = env.action_space.n
     state, _ = env.reset()
     n_observations = len(state)
@@ -104,7 +104,14 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     target_network.load_state_dict(policy_network.state_dict())
 
     optimizer = optim.AdamW(policy_network.parameters(), lr=lr, amsgrad=True)
-    memory = ReplayBuffer(buffer_depth)
+
+    if not tn_enabled:
+        tau = 0
+
+    if er_enabled:
+        memory = ReplayBuffer(buffer_depth)
+    else:
+        memory = ReplayBuffer(0)
 
     steps_done = 0
     episode_lengths = np.zeros(num_episodes)
@@ -165,7 +172,9 @@ def main():
         lr=1e-4,
         policy="softmax",
         temp=0.1,
-        network_sizes = [128,128]
+        network_sizes = [128,128],
+        er_enabled = True,
+        tn_enabled = True
     )
 
 if __name__ == "__main__":

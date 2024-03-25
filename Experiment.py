@@ -40,7 +40,7 @@ def experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, n
                     )
                 reward_curve_repetitions[:, i] = np.mean(reward_curve_single_setting, axis = 0)
                 i = i + 1
-                print(f"Current at iteration {i}")
+                print(f"Current at iteration {i}, with epsilon start = {epss}, epsilon end = {epse}, epsilon decay = {epsd}")
     #Take average of n_repetitions
     print(reward_curve_repetitions.shape)
     reward_curve = reward_curve_repetitions #Note episodes at axis 0; num iterations at axis 1
@@ -68,9 +68,9 @@ def main():
 
     env = gym.make('CartPole-v1')#, render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    num_episodes = 10; n_repetitions = 3;
+    num_episodes = 300; n_repetitions = 2;
     epsilon_start = [0.9, 0.8, 0.7]; epsilon_end = [0.05, 0.1, 0.3]; epsilon_decay = [100, 500, 1000]
-    network_sizes = [128, 128]
+    network_sizes = [32,32,32]
     experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, network_sizes, n_repetitions = n_repetitions)
 
 
