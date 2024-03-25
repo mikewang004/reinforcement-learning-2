@@ -31,7 +31,6 @@ class QNetwork(nn.Module):
         for i in range(1, len(network_sizes)):
             self.layers.append(nn.Linear(network_sizes[i - 1], network_sizes[i]))
         self.layers.append(nn.Linear(network_sizes[-1], n_actions))
-        print(self.layers)
 
     def forward(self, x):
         for layer in self.layers[:-1]:
@@ -149,7 +148,7 @@ def main():
         eps_decay=1000,
         tau=0.005,
         lr=1e-4,
-        network_sizes=[45,324,3,4],
+        network_sizes=[10,10,10],
         plot_final =True
     )
 
