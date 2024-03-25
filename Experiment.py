@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 from itertools import count
 import numpy as np
-from Agent2 import train
+from Agent import train
 from scipy.signal import savgol_filter
 
 def experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, eval_percentage, n_repetitions = 20):
@@ -35,7 +35,7 @@ def experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, n
                     eps_decay=epsd,
                     tau=0.005,
                     lr=1e-4,
-                    policy="softmax",
+                    policy="egreedy",
                     temp=0.1,
                     reward_eval_count = reward_eval_count
                     )
