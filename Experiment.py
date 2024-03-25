@@ -57,8 +57,8 @@ def experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, n
                 plt.plot(np.linspace(0, num_episodes, reward_eval_count+1)[:-1], reward_curve[:, i], label = f"eps_start = {epss}, eps_end = {epse}, eps_decay = {epsd}")
                 i = i + 1
         plt.legend(loc='upper left', prop={'size': 6})
-        plt.savefig(f"plots/learning_curve_epsd_{epsd}_num_eps_{num_episodes}_n_reps_{n_repetitions}.pdf")
-    np.savetxt("data/epsilon_reward_curves.txt", reward_curve)
+        #plt.savefig(f"plots/learning_curve_epsd_{epsd}_num_eps_{num_episodes}_n_reps_{n_repetitions}.pdf")
+    #np.savetxt("data/epsilon_reward_curves.txt", reward_curve)
 
 
 
