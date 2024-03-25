@@ -43,10 +43,13 @@ def experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, n
                 i = i + 1
                 print(f"Current at iteration {i}")
     #Take average of n_repetitions
-    reward_curve = np.mean(reward_curve_repetitions, axis = 0)
+    print(reward_curve_repetitions.shape)
+    reward_curve = reward_curve_repetitions #Note episodes at axis 0; num iterations at axis 1
+    #reward_curve = np.mean(reward_curve_repetitions, axis = 0)
     #reward_curve = savgol_filter(reward_curve_repetitions, axis = 0, poly = 9)
     #Plot reward curves 
     i = 0
+    np.savetxt("data/epsilon_reward_curves.txt", reward_curve)
     for epsd in epsilon_decay:
         plt.figure()
         plt.title("Comparison of various epsilon values")
@@ -58,7 +61,7 @@ def experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, n
                 i = i + 1
         plt.legend(loc='upper left', prop={'size': 6})
         plt.savefig(f"plots/learning_curve_epsd_{epsd}_num_eps_{num_episodes}_n_reps_{n_repetitions}.pdf")
-    np.savetxt("data/epsilon_reward_curves.txt", reward_curve)
+    
 
 
 
@@ -68,7 +71,7 @@ def main():
 
     env = gym.make('CartPole-v1')#, render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    num_episodes = 300; n_repetitions = 20;
+    num_episodes = 400; n_repetitions = 20;
     eval_percentage = 1;
     epsilon_start = [0.9, 0.8, 0.7]; epsilon_end = [0.05, 0.1, 0.3]; epsilon_decay = [100, 500, 1000]
     experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, eval_percentage, n_repetitions = n_repetitions)
