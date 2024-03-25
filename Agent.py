@@ -117,6 +117,7 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     episode_lengths = np.zeros(num_episodes)
 
     for i in range(num_episodes):
+        print(i)
         state, _ = env.reset()
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
         for t in count():
@@ -140,7 +141,6 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
             for key in policy_network_state_dict:
                 target_network_state_dict[key] = policy_network_state_dict[key] * tau + target_network_state_dict[key] * (1 - tau)
             target_network.load_state_dict(target_network_state_dict)
-
             if done:
                 episode_lengths[i] = t
                 break
@@ -170,7 +170,7 @@ def main():
         eps_decay=1000,
         tau=0.005,
         lr=1e-4,
-        policy="softmax",
+        policy="egreedy",
         temp=0.1,
         network_sizes = [128,128],
         er_enabled = True,
