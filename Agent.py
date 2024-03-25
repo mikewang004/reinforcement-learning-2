@@ -98,7 +98,6 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     n_actions = env.action_space.n
     state, _ = env.reset()
     n_observations = len(state)
-    reward_eval_count = int(0.05 * num_episodes)
 
     policy_network = QNetwork(n_observations, n_actions, network_sizes).to(device)
     target_network = QNetwork(n_observations, n_actions, network_sizes).to(device)
@@ -108,8 +107,7 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     memory = ReplayBuffer(buffer_depth)
 
     steps_done = 0
-    episode_lengths = []
-    rewards_eval_episode = np.zeros(reward_eval_count)
+    episode_lengths = np.zeros(num_episodes)
 
     for i in range(num_episodes):
         state, _ = env.reset()
@@ -137,7 +135,7 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
             target_network.load_state_dict(target_network_state_dict)
 
             if done:
-                episode_lengths.append(t + 1)
+                episode_lengths[i] = t
                 break
 
     print('Complete')
@@ -148,7 +146,7 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     plt.title('Rewards per episode')
     plt.show()
 
-    return rewards_eval_episode
+    return episode_lengths
 
 def main():
     env = gym.make('CartPole-v1')#, render_mode="human")

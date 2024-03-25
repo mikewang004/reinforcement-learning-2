@@ -8,6 +8,8 @@ import torch.nn as nn
 import torch.optim as optim
 from itertools import count
 import numpy as np
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 class ReplayBuffer:
     def __init__(self, buffer_depth):
@@ -25,17 +27,18 @@ class ReplayBuffer:
         return len(self.memory)
 
 class QNetwork(nn.Module):
-    def __init__(self, n_states, n_actions):
+    def __init__(self, n_states, n_actions, network_sizes = [128, 128]):
         super(QNetwork, self).__init__()
-        self.layer1 = nn.Linear(n_states, 128)
-        self.layer2 = nn.Linear(128, 128)
-        self.layer3 = nn.Linear(128, n_actions)
-        return 
+        self.layers = nn.ModuleList()
+        self.layers.append(nn.Linear(n_states, network_sizes[0]))
+        for i in range(1, len(network_sizes)):
+            self.layers.append(nn.Linear(network_sizes[i - 1], network_sizes[i]))
+        self.layers.append(nn.Linear(network_sizes[-1], n_actions))
 
     def forward(self, x):
-        x = torch.relu(self.layer1(x))
-        x = torch.relu(self.layer2(x))
-        return self.layer3(x)
+        for layer in self.layers[:-1]:
+            x = torch.relu(layer(x))
+        return self.layers[-1](x)
 
 def select_action(state, steps_done, eps_start, eps_end, eps_decay, env, policy_network, device, policy, temp):
     if policy == "egreedy":
@@ -90,30 +93,25 @@ def train_model(memory, policy_network, target_network, optimizer, device, batch
     torch.nn.utils.clip_grad_value_(policy_network.parameters(), 100)
     optimizer.step()
 
-def train(env, device, num_episodes, buffer_depth, batch_size, 
-    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp, reward_eval_count):
+def train(env, device, num_episodes, buffer_depth, batch_size,
+    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp, network_sizes):
     n_actions = env.action_space.n
     state, _ = env.reset()
     n_observations = len(state)
 
-    policy_network = QNetwork(n_observations, n_actions).to(device)
-    target_network = QNetwork(n_observations, n_actions).to(device)
+    policy_network = QNetwork(n_observations, n_actions, network_sizes).to(device)
+    target_network = QNetwork(n_observations, n_actions, network_sizes).to(device)
     target_network.load_state_dict(policy_network.state_dict())
 
     optimizer = optim.AdamW(policy_network.parameters(), lr=lr, amsgrad=True)
     memory = ReplayBuffer(buffer_depth)
 
     steps_done = 0
-    #episode_lengths = []
-    rewards_eval_episode = np.zeros(reward_eval_count)
-    j = 0 #rewards eval counter
+    episode_lengths = np.zeros(num_episodes)
 
     for i in range(num_episodes):
         state, _ = env.reset()
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
-        if i % (num_episodes/reward_eval_count) == 0:
-            rewards_eval_bool = True
-            rewards_count = 0
         for t in count():
             action = select_action(state, steps_done, eps_start, eps_end, eps_decay, env, policy_network, device, policy, temp)
             observation, reward, terminated, truncated, _ = env.step(action.item())
@@ -124,9 +122,6 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
                 next_state = None
             else:
                 next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
-
-            if rewards_eval_bool == True:
-                rewards_count = rewards_count + reward
 
             memory.push(state, action, next_state, reward, done)
             state = next_state
@@ -140,32 +135,20 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
             target_network.load_state_dict(target_network_state_dict)
 
             if done:
-                #episode_lengths.append(t + 1)
-                if rewards_eval_bool == True:
-                    rewards_eval_episode[j] = rewards_count
-                    j = j + 1
-                    rewards_eval_bool = False
+                episode_lengths[i] = t
                 break
 
     print('Complete')
-    print(rewards_eval_episode)
-    # Plot episode lengths
-    #plt.plot(rewards_eval_episode)
-    #plt.xlabel('Episode')
-    #plt.ylabel('Rewards')
-    #plt.title('Rewards per episode')
-    #plt.show()
 
-    return rewards_eval_episode
+    return episode_lengths
 
 def main():
     env = gym.make('CartPole-v1')#, render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    num_episodes = 400
     train(
         env=env,
         device=device,
-        num_episodes=num_episodes,
+        num_episodes=5,
         buffer_depth=10000,
         batch_size=128,
         gamma=0.99,
@@ -176,7 +159,7 @@ def main():
         lr=1e-4,
         policy="softmax",
         temp=0.1,
-        reward_eval_count = int(0.05 * num_episodes)
+        network_sizes = [20,20]
     )
 
 if __name__ == "__main__":
