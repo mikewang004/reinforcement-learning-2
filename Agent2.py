@@ -94,7 +94,7 @@ def train_model(memory, policy_network, target_network, optimizer, device, batch
     optimizer.step()
 
 def train(env, device, num_episodes, buffer_depth, batch_size,
-    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp, network_sizes):
+    gamma, eps_start, eps_end, eps_decay, tau, lr, policy, temp, network_sizes, er_enabled, tn_enabled):
     n_actions = env.action_space.n
     state, _ = env.reset()
     n_observations = len(state)
@@ -104,15 +104,25 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     target_network.load_state_dict(policy_network.state_dict())
 
     optimizer = optim.AdamW(policy_network.parameters(), lr=lr, amsgrad=True)
-    memory = ReplayBuffer(buffer_depth)
 
-    steps_done = 0
+    if not tn_enabled:
+        tau = 0
+
+    if er_enabled:
+        memory = ReplayBuffer(buffer_depth)
+    else:
+        memory = ReplayBuffer(0)
+
+
     episode_lengths = np.zeros(num_episodes)
+    steps_done = 0
 
     for i in range(num_episodes):
         state, _ = env.reset()
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
+
         for t in count():
+            steps_done +=1
             action = select_action(state, steps_done, eps_start, eps_end, eps_decay, env, policy_network, device, policy, temp)
             observation, reward, terminated, truncated, _ = env.step(action.item())
             reward = torch.tensor([reward], device=device)
@@ -133,34 +143,38 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
             for key in policy_network_state_dict:
                 target_network_state_dict[key] = policy_network_state_dict[key] * tau + target_network_state_dict[key] * (1 - tau)
             target_network.load_state_dict(target_network_state_dict)
-
             if done:
                 episode_lengths[i] = t
                 break
 
-    print('Complete')
+        #print('Episode: ' + str(i), 'reward: {}'.format(episode_lengths[i].round(0)) + str('|' * int(0.1 * episode_lengths[i])))
 
+    print('Complete')
+    # Plot episode lengths
     return episode_lengths
 
 def main():
-    env = gym.make('CartPole-v1')#, render_mode="human")
+    #print('Device is:{}'.format(torch.cuda.get_device_name(0)))
+    env = gym.make('CartPole-v1',)# render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     train(
         env=env,
         device=device,
-        num_episodes=5,
+        num_episodes=500,
         buffer_depth=10000,
-        batch_size=128,
+        batch_size=64,
         gamma=0.99,
-        eps_start=0.9,
-        eps_end=0.05,
+        eps_start=0.5,
+        eps_end=0.1,
         eps_decay=1000,
         tau=0.005,
-        lr=1e-4,
-        policy="softmax",
-        temp=0.1,
-        network_sizes = [20,20]
+        lr=1e-3,
+        policy="egreedy",
+        temp=1,
+        network_sizes = [32, 64, 32],
+        er_enabled = True,
+        tn_enabled = True
     )
-
+256
 if __name__ == "__main__":
     main()

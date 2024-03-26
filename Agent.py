@@ -177,7 +177,7 @@ def main():
         lr=1e-3,
         policy="egreedy",
         temp=1,
-        network_sizes = [64, 128, 64],
+        network_sizes = [32, 64, 32],
         er_enabled = True,
         tn_enabled = True
     )
