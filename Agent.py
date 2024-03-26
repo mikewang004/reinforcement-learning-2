@@ -113,14 +113,16 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     else:
         memory = ReplayBuffer(0)
 
-    steps_done = 0
+
     episode_lengths = np.zeros(num_episodes)
+    steps_done = 0
 
     for i in range(num_episodes):
-        print(i)
         state, _ = env.reset()
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
+
         for t in count():
+            steps_done +=1
             action = select_action(state, steps_done, eps_start, eps_end, eps_decay, env, policy_network, device, policy, temp)
             observation, reward, terminated, truncated, _ = env.step(action.item())
             reward = torch.tensor([reward], device=device)
@@ -145,6 +147,8 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
                 episode_lengths[i] = t
                 break
 
+        print('Episode: ' + str(i), 'reward: {}'.format(episode_lengths[i].round(0)) + str('|' * int(0.1 * episode_lengths[i])))
+
     print('Complete')
     # Plot episode lengths
     plt.plot(episode_lengths)
@@ -156,7 +160,8 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     return episode_lengths
 
 def main():
-    env = gym.make('CartPole-v1')#, render_mode="human")
+    print('Device is:{}'.format(torch.cuda.get_device_name(0)))
+    env = gym.make('CartPole-v1', render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     train(
         env=env,
@@ -165,14 +170,14 @@ def main():
         buffer_depth=10000,
         batch_size=128,
         gamma=0.99,
-        eps_start=0.9,
-        eps_end=0.05,
+        eps_start=0.5,
+        eps_end=0.1,
         eps_decay=1000,
         tau=0.005,
-        lr=1e-4,
-        policy="egreedy",
-        temp=0.1,
-        network_sizes = [128,128],
+        lr=1e-3,
+        policy="softmax",
+        temp=1,
+        network_sizes = [128,128,128],
         er_enabled = True,
         tn_enabled = True
     )
