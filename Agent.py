@@ -161,23 +161,23 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
 
 def main():
     print('Device is:{}'.format(torch.cuda.get_device_name(0)))
-    env = gym.make('CartPole-v1', render_mode="human")
+    env = gym.make('CartPole-v1',)# render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     train(
         env=env,
         device=device,
         num_episodes=500,
         buffer_depth=10000,
-        batch_size=128,
+        batch_size=64,
         gamma=0.99,
         eps_start=0.5,
         eps_end=0.1,
         eps_decay=1000,
         tau=0.005,
         lr=1e-3,
-        policy="softmax",
+        policy="egreedy",
         temp=1,
-        network_sizes = [1000,1000,1000,1000,1000,1000],
+        network_sizes = [256, 256, 256],
         er_enabled = True,
         tn_enabled = True
     )
