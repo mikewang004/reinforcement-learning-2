@@ -177,7 +177,7 @@ def main():
         lr=1e-3,
         policy="softmax",
         temp=1,
-        network_sizes = [128,128,128],
+        network_sizes = [1000,1000,1000,1000,1000,1000],
         er_enabled = True,
         tn_enabled = True
     )
