@@ -160,7 +160,7 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
     return episode_lengths
 
 def main():
-    print('Device is:{}'.format(torch.cuda.get_device_name(0)))
+    #print('Device is:{}'.format(torch.cuda.get_device_name(0)))
     env = gym.make('CartPole-v1',)# render_mode="human")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     train(
@@ -177,10 +177,10 @@ def main():
         lr=1e-3,
         policy="egreedy",
         temp=1,
-        network_sizes = [256, 256, 256],
+        network_sizes = [64, 128, 64],
         er_enabled = True,
         tn_enabled = True
     )
-
+256
 if __name__ == "__main__":
     main()
