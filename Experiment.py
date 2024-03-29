@@ -87,15 +87,15 @@ def single_plot(epsilon_start, epsilon_end, epsilon_decay, env, device, num_epis
         )
     epss = epsilon_start; epse = epsilon_end; epsd = epsilon_decay;
     reward_curve_norm = np.mean(reward_curve, axis=1)
-    np.savetxt("data/reward_curves_epsilons{epss}_{epse}_{epsd}_num_eps_{num_episodes}_n_reps_{n_repetitions}txt", reward_curve)
+    np.savetxt(f"data/reward_curves_epsilons{epss}_{epse}_{epsd}_num_eps_{num_episodes}_n_reps_{n_repetitions}-relu-64-128-64.txt", reward_curve)
     plt.figure()
     plt.title("Average reward curve of epsilon-greedy learning method")
     plt.xlabel("episode"); plt.ylabel("rewards")
     #plt.xticks(np.linspace(0, num_episodes, reward_eval_count+1))
-    plt.plot(np.linspace(0, num_episodes, num_episodes+1)[:-1], reward_curve_norm, label = "eps_start = {epss}, eps_end = {epse}, eps_decay = {epsd}")
+    plt.plot(np.linspace(0, num_episodes, num_episodes+1)[:-1], reward_curve_norm, label = f"eps_start = {epss}, eps_end = {epse}, eps_decay = {epsd}")
     plt.legend()
-    plt.savefig(f"plots/learning_curve_epsilons{epss}_{epse}_{epsd}_num_eps_{num_episodes}_n_reps_{n_repetitions}.pdf")
-    # Plot average of all curves 
+    plt.savefig(f"plots/learning_curve_epsilons{epss}_{epse}_{epsd}_num_eps_{num_episodes}_n_reps_{n_repetitions}-relu-64-128-64.pdf")
+    # Plot average of all curves    
 
 def main():
 
@@ -105,9 +105,9 @@ def main():
     num_episodes = 500; n_repetitions = 6;
     epsilon_start = [0.8, 0.7]; epsilon_end = [0.05, 0.1]; #epsilon_decay = [100, 500, 1000]
     epsilon_decay = [500, 700]
-    network_sizes = [64,128,64]
-    experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, network_sizes, n_repetitions = n_repetitions)
-    #single_plot(epsilon_start = 0.7, epsilon_end = 0.05, epsilon_decay = 700, env=env, device=device, num_episodes= num_episodes, network_sizes= network_sizes, n_repetitions= n_repetitions)
+    network_sizes = [128,256,128]
+    #experiment_epsilon(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, network_sizes, n_repetitions = n_repetitions)
+    single_plot(epsilon_start = 0.7, epsilon_end = 0.05, epsilon_decay = 700, env=env, device=device, num_episodes= num_episodes, network_sizes= network_sizes, n_repetitions= n_repetitions)
 
 
 if __name__ == "__main__":

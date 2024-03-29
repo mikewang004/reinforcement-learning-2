@@ -33,6 +33,10 @@ class QNetwork(nn.Module):
         self.layers.append(nn.Linear(n_states, network_sizes[0]))
         for i in range(1, len(network_sizes)):
             self.layers.append(nn.Linear(network_sizes[i - 1], network_sizes[i]))
+            #if i == len(network_sizes) - 1:
+                #pass
+            #else:
+                #self.layers.append(nn.ReLU())
         self.layers.append(nn.Linear(network_sizes[-1], n_actions))
 
     def forward(self, x):
