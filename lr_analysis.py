@@ -24,9 +24,12 @@ print(lr)
 
 
 for i in range(0, learning_rate.shape[1]):
-    #yhat = savgol_filter(learning_rate[:, i], 500, 4)
-    yhat = np.convolve(learning_rate[:, i], np.ones(100), "valid")/np.max(learning_rate[:, i])
+    yhat = savgol_filter(learning_rate[:, i], 500, 3, mode = "nearest")
+    #yhat = np.convolve(learning_rate[:, i], np.ones(100), "valid")/np.max(learning_rate[:, i])
     #plt.plot(learning_rate[:, i], label = f"learning rate = {lr[i]}")
     plt.plot(yhat, label = f"learning rate = {lr[i]}")
 plt.legend()
-plt.show()
+#plt.show()
+plt.savefig("plots/epsilon_learning_rate.pdf")
+
+print(np.mean(learning_rate, axis = 0))
