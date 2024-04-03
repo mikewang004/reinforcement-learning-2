@@ -14,6 +14,7 @@ import sys
 
 env = gym.make('CartPole-v1')#, render_mode="human")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(torch.cuda.is_available())
 num_episodes = 500; n_repetitions = 6; 
 
 #Optimal found arguments are listed here 

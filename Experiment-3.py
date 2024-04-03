@@ -241,10 +241,10 @@ def main():
     #lr = [1e-4, 0.5e-4, 1e-3, 0.5e-3, 1e-2]
     lr = 0.5e-4
     gamma = [0.75, 0.9, 0.99]
-    experiment_epsilon([0.8, 0.7], [0.05, 0.1], [500, 700], env, device, num_episodes, network_sizes, n_repetitions = n_repetitions)
+    #experiment_epsilon([0.8, 0.7], [0.05, 0.1], [500, 700], env, device, num_episodes, network_sizes, n_repetitions = n_repetitions)
     experiment_learning_rate(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, network_sizes, [1e-4, 0.5e-4, 1e-3, 0.5e-3, 1e-2])
-    tr_test(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, network_sizes, lr, n_repetitions)
-    er_tr_test(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, network_sizes, lr, n_repetitions)
+    #tr_test(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, network_sizes, lr, n_repetitions)
+    #er_tr_test(epsilon_start, epsilon_end, epsilon_decay, env, device, num_episodes, network_sizes, lr, n_repetitions)
 
 if __name__ == "__main__":
     main()

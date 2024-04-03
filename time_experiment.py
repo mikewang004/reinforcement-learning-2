@@ -9,6 +9,7 @@ import torch.optim as optim
 from itertools import count
 import numpy as np
 import os
+import time
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 class ReplayBuffer:
@@ -159,11 +160,13 @@ def train(env, device, num_episodes, buffer_depth, batch_size,
 
     return episode_lengths
 
-def main():
+def execution_loop(device):
+    """Device either "cpu" or "cuda" """
     #print('Device is:{}'.format(torch.cuda.get_device_name(0)))
     env = gym.make('CartPole-v1',)# render_mode="human")
     #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    device= torch.device("cpu")
+    device= torch.device(device)
+    start = time.time()
     train(
         env=env,
         device=device,
@@ -182,6 +185,33 @@ def main():
         er_enabled = True,
         tn_enabled = True
     )
+    end = time.time()
+    return end - start
+
+
+
+def time_loop():
+    time_array = np.zeros([2, 6])
+    for i in range(0, 6):
+        time_array[0, i] = execution_loop("cuda")
+        time_array[1, i] = execution_loop("cpu")
+    np.savetxt("data/time_test.txt", time_array)
+
+def data_analysis():
+    time_array = np.loadtxt("data/time_test.txt")
+    plt.plot(time_array[0, :], label = "cuda")
+    plt.plot(time_array[1, :], label = "cpu")
+    plt.xlabel("no. run")
+    plt.ylabel("time taken (s)")
+    plt.title("comparison runtime for network size [128-256-512-512-256-128]")
+    plt.legend()
+    plt.savefig("plots/runtime.pdf")
+    plt.show()
+
+def main():
+    #time_loop()
+    data_analysis()
+    
 
 if __name__ == "__main__":
     main()
